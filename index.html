@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍉 可愛いスイカゲーム</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- ヘッダー -->
+        <div class="header">
+            <div class="logo">
+                <span class="logo-icon">🍉</span>
+                <span class="logo-text">すいかちゃん</span>
+            </div>
+            <div class="score-display">
+                <div class="score-label">スコア</div>
+                <div class="score-value" id="scoreValue">0</div>
+            </div>
+        </div>
+
+        <!-- メインゲームエリア -->
+        <div class="game-container">
+            <!-- 次の果物プレビュー -->
+            <div class="next-fruit-panel">
+                <div class="panel-title">つぎの果物</div>
+                <div class="next-fruit-display">
+                    <canvas id="nextFruitCanvas" width="100" height="100"></canvas>
+                </div>
+                <div class="combo-counter" id="comboCounter">
+                    <span class="combo-label">コンボ</span>
+                    <span class="combo-value" id="comboValue">0</span>
+                </div>
+            </div>
+
+            <!-- ゲームキャンバス -->
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="400" height="600"></canvas>
+                <div class="game-over-screen" id="gameOverScreen">
+                    <div class="game-over-content">
+                        <div class="game-over-title">ゲームオーバー</div>
+                        <div class="final-score">スコア: <span id="finalScore">0</span></div>
+                        <button class="restart-btn" id="restartBtn">もう一度遊ぶ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- サイドパネル -->
+            <div class="side-panel">
+                <div class="fruit-evolution">
+                    <div class="panel-title">果物の進化</div>
+                    <div class="evolution-list" id="evolutionList">
+                        <!-- JavaScript で動的生成 -->
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button class="control-btn pause-btn" id="pauseBtn">
+                        <span class="btn-icon">⏸️</span>
+                        <span class="btn-text">一時停止</span>
+                    </button>
+                    <button class="control-btn reset-btn" id="resetBtn">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">やり直し</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- フッター -->
+        <div class="footer">
+            <div class="instructions">
+                <span class="instruction-item">🖱️ マウスで位置を決める</span>
+                <span class="instruction-item">👆 クリックで果物を落とす</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ゲームスクリプト（順序重要） -->
+    <script src="config.js"></script>
+    <script src="drawing.js"></script>
+    <script src="physics.js"></script>
+    <script src="energy_physics.js"></script>
+    <script src="effects.js"></script>
+    <script src="fruit.js"></script>
+    <script src="game_main.js"></script>
+</body>
+</html>
