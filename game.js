@@ -1,43 +1,53 @@
-// ゲーム設定
+// ========================
+// ゲーム設定・定数
+// ========================
+
 const CONFIG = {
+    // キャンバス設定
     canvas: {
         width: 400,
         height: 600,
         backgroundColor: '#ffeaa7'
     },
+    
+    // 物理エンジン設定（自然な重力・慣性法則）
     physics: {
-        gravity: 0.3,                    // より自然な重力
-        friction: 0.995,                 // 空気摩擦
+        gravity: 0.4,                    // 重力加速度（自然界基準）
+        friction: 0.998,                 // 空気摩擦
         airResistance: 0.999,            // 空気抵抗
-        groundFriction: 0.88,            // 地面摩擦を強化（転がりやすく）
-        restitution: 0.15,               // 反発を抑える
-        separationBuffer: 1.0,
-        maxCollisionIterations: 6,
-        angularDamping: 0.96,            // 回転減衰を調整
-        rotationFactor: 0.6,             // 回転強度を上げる（より転がりやすく）
-        rollingResistance: 0.008,        // 転がり抵抗を下げる（より滑らかに）
-        inertiaFactor: 0.4,              // 慣性の強さ
-        rollingThreshold: 0.02,          // 転がり開始閾値
-        rollingAcceleration: 0.85        // 転がり加速度
+        groundFriction: 0.94,            // 地面摩擦（わずかに増加）
+        restitution: 0.25,               // 反発係数（わずかに増加）
+        separationBuffer: 0.5,           // 果物分離バッファ（視覚的接触のため縮小）
+        maxCollisionIterations: 8,       // 最大衝突反復
+        angularDamping: 0.985,           // 角速度減衰（自然な停止）
+        rotationFactor: 0.18,            // 回転収束係数（より遅く）
+        rollingResistance: 0.018,        // 転がり抵抗（増加で減速）
+        inertiaFactor: 0.4,              // 慣性係数（球体標準）
+        rollingThreshold: 0.08,          // 転がり開始閾値（より敏感に）
+        rollingAcceleration: 0.45        // 転がり加速係数（より遅く）
     },
+    
+    // ゲームロジック設定
     game: {
         gameOverLine: 100,
-        staticFrameCount: 20,            // 静止判定フレーム数
+        staticFrameCount: 20,
         dropProtectionFrames: 30,
         comboTimeWindow: 2000,
-        staticThreshold: 0.03,           // 静止速度閾値
-        microMovementThreshold: 0.01,    // 微小動作閾値
-        stabilityFrames: 10              // 安定性確認フレーム
+        staticThreshold: 0.02,           // より厳格な静止判定
+        microMovementThreshold: 0.005,   // より厳格な微動判定
+        stabilityFrames: 15,             // より長い安定化期間
+        vibrationThreshold: 0.008,       // プルプル振動検出閾値
+        contactStabilization: 5          // 接触安定化フレーム
     }
 };
 
-// 果物の定義（可愛いキャラクター設定）
+// 果物データ定義
 const FRUITS = [
     { 
         id: 0, 
         name: 'さくらんぼ', 
         emoji: '🍒', 
-        radius: 14, 
+        radius: 16, 
         color: '#ff6b9d', 
         points: 5,
         personality: 'shy' // 恥ずかしがり屋
@@ -46,7 +56,7 @@ const FRUITS = [
         id: 1, 
         name: 'いちご', 
         emoji: '🍓', 
-        radius: 18, 
+        radius: 22, 
         color: '#ff6b6b', 
         points: 10,
         personality: 'happy' // 元気
@@ -55,7 +65,7 @@ const FRUITS = [
         id: 2, 
         name: 'ぶどう', 
         emoji: '🍇', 
-        radius: 22, 
+        radius: 30, 
         color: '#a29bfe', 
         points: 20,
         personality: 'cool' // クール
@@ -64,7 +74,7 @@ const FRUITS = [
         id: 3, 
         name: 'みかん', 
         emoji: '🍊', 
-        radius: 26, 
+        radius: 40, 
         color: '#fdcb6e', 
         points: 35,
         personality: 'cheerful' // 陽気
@@ -73,7 +83,7 @@ const FRUITS = [
         id: 4, 
         name: 'りんご', 
         emoji: '🍎', 
-        radius: 30, 
+        radius: 53, 
         color: '#e17055', 
         points: 55,
         personality: 'gentle' // 優しい
@@ -82,7 +92,7 @@ const FRUITS = [
         id: 5, 
         name: 'なし', 
         emoji: '🍐', 
-        radius: 36, 
+        radius: 70, 
         color: '#a4de6c', 
         points: 80,
         personality: 'calm' // 穏やか
@@ -91,7 +101,7 @@ const FRUITS = [
         id: 6, 
         name: 'もも', 
         emoji: '🍑', 
-        radius: 42, 
+        radius: 92, 
         color: '#ffb3d9', 
         points: 110,
         personality: 'sweet' // 甘えん坊
@@ -100,7 +110,7 @@ const FRUITS = [
         id: 7, 
         name: 'パイナップル', 
         emoji: '🍍', 
-        radius: 50, 
+        radius: 105, 
         color: '#f39c12', 
         points: 150,
         personality: 'energetic' // エネルギッシュ
@@ -109,7 +119,7 @@ const FRUITS = [
         id: 8, 
         name: 'メロン', 
         emoji: '🍈', 
-        radius: 58, 
+        radius: 135, 
         color: '#7ed6df', 
         points: 200,
         personality: 'elegant' // エレガント
@@ -118,14 +128,17 @@ const FRUITS = [
         id: 9, 
         name: 'スイカ', 
         emoji: '🍉', 
-        radius: 66, 
+        radius: 170, 
         color: '#55a3ff', 
         points: 300,
         personality: 'royal' // 王様
     }
 ];
 
-// 表情とアニメーションシステム
+// ========================
+// 表情・アニメーションシステム
+// ========================
+
 class ExpressionSystem {
     static getExpression(personality, emotion = 'neutral') {
         const expressions = {
@@ -185,22 +198,19 @@ class ExpressionSystem {
     }
 }
 
-// 可愛い描画システム
+// ========================
+// 描画システム
+// ========================
+
 class CuteDrawingSystem {
+    // メイン描画メソッド
     static drawFruit(ctx, fruit) {
         ctx.save();
         ctx.translate(fruit.x, fruit.y);
         
-        // 影の描画
         this.drawShadow(ctx, fruit);
-        
-        // 果物本体
         this.drawBody(ctx, fruit);
-        
-        // 表情
         this.drawFace(ctx, fruit);
-        
-        // 特殊効果
         this.drawSpecialEffects(ctx, fruit);
         
         ctx.restore();
@@ -216,25 +226,38 @@ class CuteDrawingSystem {
         ctx.restore();
     }
     
+    // 果物本体の描画
     static drawBody(ctx, fruit) {
-        const fruitData = FRUITS[fruit.type];
-        
-        // 回転を適用（転がり効果強化）
         const rotation = fruit.rotation || 0;
         ctx.rotate(rotation);
         
-        // 転がり効果の追加視覚表現
         if (fruit.isRolling && fruit.rollIntensity > 0) {
             this.drawRollingEffects(ctx, fruit);
         }
         
-        // より柔らかい質感のグラデーション
+        this.drawMainBody(ctx, fruit);
+        this.drawHighlights(ctx, fruit, rotation);
+        this.drawFruitPatterns(ctx, fruit);
+    }
+    
+    // メイン本体の描画
+    static drawMainBody(ctx, fruit) {
+        const fruitData = FRUITS[fruit.type];
+        const gradient = this.createBodyGradient(ctx, fruit, fruitData);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // 本体グラデーションの作成
+    static createBodyGradient(ctx, fruit, fruitData) {
         const gradient = ctx.createRadialGradient(
             -fruit.radius * 0.3, -fruit.radius * 0.3, 0,
             0, 0, fruit.radius * 1.2
         );
         
-        // より温かみのある色調
         const baseColor = fruitData.color;
         const lightColor = this.lightenColor(baseColor, 35);
         const darkColor = this.darkenColor(baseColor, 25);
@@ -243,14 +266,14 @@ class CuteDrawingSystem {
         gradient.addColorStop(0.5, baseColor);
         gradient.addColorStop(1, darkColor);
         
-        // メイン円（より丸みを帯びた表現）
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
-        ctx.fill();
+        return gradient;
+    }
+    
+    // ハイライト効果の描画
+    static drawHighlights(ctx, fruit, rotation) {
+        const highlightAngle = rotation * 0.3;
         
-        // 柔らかいハイライト（回転に応じて動く）
-        const highlightAngle = rotation * 0.3; // 回転の30%の速度で動く
+        // メインハイライト
         const highlightX = -fruit.radius * 0.2 + Math.cos(highlightAngle) * fruit.radius * 0.1;
         const highlightY = -fruit.radius * 0.2 + Math.sin(highlightAngle) * fruit.radius * 0.1;
         
@@ -259,7 +282,7 @@ class CuteDrawingSystem {
         ctx.arc(highlightX, highlightY, fruit.radius * 0.3, 0, Math.PI * 2);
         ctx.fill();
         
-        // 小さな光沢（より動的に）
+        // 小さな光沢
         const glossX = -fruit.radius * 0.3 + Math.cos(highlightAngle * 1.2) * fruit.radius * 0.05;
         const glossY = -fruit.radius * 0.3 + Math.sin(highlightAngle * 1.2) * fruit.radius * 0.05;
         
@@ -267,15 +290,12 @@ class CuteDrawingSystem {
         ctx.beginPath();
         ctx.arc(glossX, glossY, fruit.radius * 0.1, 0, Math.PI * 2);
         ctx.fill();
-        
-        // 果物の模様や特徴（回転と一緒に動く）
-        this.drawFruitPatterns(ctx, fruit);
     }
     
+    // 果物固有のパターン描画
     static drawFruitPatterns(ctx, fruit) {
         const fruitData = FRUITS[fruit.type];
         
-        // 果物の種類に応じた模様を追加
         switch(fruitData.name) {
             case 'いちご':
                 this.drawStrawberrySeeds(ctx, fruit);
@@ -463,17 +483,24 @@ class CuteDrawingSystem {
     static drawRollingEffects(ctx, fruit) {
         // 転がり中の視覚効果
         const intensity = fruit.rollIntensity || 0;
+        const isCollisionRolling = fruit.collisionRollingFrames > 0;
+        
+        // 衝突による転がりの特別な効果
+        if (isCollisionRolling) {
+            this.drawCollisionRollingEffects(ctx, fruit, intensity);
+        }
         
         // 転がりトレイル効果（微細な軌跡）
         if (fruit.rotationTrail && fruit.rotationTrail.length > 1) {
             ctx.save();
-            ctx.globalAlpha = intensity * 0.3;
+            ctx.globalAlpha = intensity * (isCollisionRolling ? 0.5 : 0.3); // 衝突時はより濃く
             
             // 過去の回転位置を淡く表示
             for (let i = 0; i < fruit.rotationTrail.length - 1; i++) {
                 const trail = fruit.rotationTrail[i];
                 const age = Date.now() - trail.timestamp;
-                const trailAlpha = Math.max(0, 1 - age / 200) * intensity * 0.2;
+                const baseAlpha = isCollisionRolling ? 0.4 : 0.2;
+                const trailAlpha = Math.max(0, 1 - age / 200) * intensity * baseAlpha;
                 
                 if (trailAlpha > 0.01) {
                     ctx.save();
@@ -482,7 +509,7 @@ class CuteDrawingSystem {
                     
                     // 微細な回転軌跡を描画
                     ctx.strokeStyle = FRUITS[fruit.type].color;
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = isCollisionRolling ? 2 : 1; // 衝突時は太く
                     ctx.setLineDash([2, 2]);
                     ctx.beginPath();
                     ctx.arc(0, 0, fruit.radius * 0.95, 0, Math.PI * 2);
@@ -528,122 +555,281 @@ class CuteDrawingSystem {
             ctx.restore();
         }
     }
+    
+    // 衝突時の特別な転がり効果
+    static drawCollisionRollingEffects(ctx, fruit, intensity) {
+        // 衝突による回転の視覚的強調
+        const collisionIntensity = fruit.collisionRollingFrames / 60; // 0-1の強度
+        
+        // 回転軌跡のパルス効果
+        if (collisionIntensity > 0.5) {
+            ctx.save();
+            ctx.globalAlpha = collisionIntensity * 0.3;
+            
+            // パルスする回転リング
+            const pulseScale = 1 + Math.sin(Date.now() * 0.02) * 0.1;
+            ctx.strokeStyle = FRUITS[fruit.type].color;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.arc(0, 0, fruit.radius * 1.1 * pulseScale, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.restore();
+        }
+        
+        // 衝突による回転方向インジケーター
+        if (Math.abs(fruit.angularVelocity) > 0.1) {
+            ctx.save();
+            ctx.globalAlpha = intensity * 0.6;
+            
+            // 回転方向を示す矢印的な効果
+            const rotationDirection = Math.sign(fruit.angularVelocity);
+            const arrowAngle = fruit.rotation + rotationDirection * Math.PI * 0.25;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            for (let i = 0; i < 3; i++) {
+                const angle = arrowAngle + i * Math.PI * 0.67;
+                const innerRadius = fruit.radius * 0.7;
+                const outerRadius = fruit.radius * 0.9;
+                
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius);
+                ctx.lineTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+    }
 }
 
+// ========================
 // 物理エンジン
+// ========================
+
 class PhysicsEngine {
+    // == 基本物理更新 ==
     static update(fruit) {
         if (fruit.isStatic) {
-            // 静止時も微小な回転減衰
-            fruit.angularVelocity *= CONFIG.physics.angularDamping;
-            if (Math.abs(fruit.angularVelocity) < 0.001) {
-                fruit.angularVelocity = 0;
-            }
-            fruit.rotation += fruit.angularVelocity;
+            this.updateStaticFruit(fruit);
             return;
         }
         
-        // 重力適用（よりリアルな慣性）
-        const mass = fruit.mass || 1;
-        // 重力は質量に関係なく一定（ガリレイの法則）
-        fruit.velocity.y += CONFIG.physics.gravity;
-        
-        // 空気抵抗と摩擦適用
-        fruit.velocity.x *= CONFIG.physics.airResistance;
-        fruit.velocity.y *= CONFIG.physics.friction;
-        
-        // 地面との接触判定
-        const isOnGround = fruit.y + fruit.radius >= CONFIG.canvas.height - 5;
-        
-        // 地面摩擦（地面に接触している場合）
-        if (isOnGround) {
-            fruit.velocity.x *= CONFIG.physics.groundFriction;
-        }
-        
-        // 回転の更新（転がり効果）
-        this.updateRotation(fruit, isOnGround);
-        
-        // 境界チェック（位置更新前）
-        this.preBoundaryCheck(fruit);
-        
-        // 位置更新
-        fruit.x += fruit.velocity.x;
-        fruit.y += fruit.velocity.y;
-        
-        // 境界チェック（位置更新後）
-        this.postBoundaryCheck(fruit);
-        
-        // 静止判定
+        this.applyForces(fruit);
+        this.updateRotation(fruit);
+        this.updatePosition(fruit);
+        this.suppressVibration(fruit); // プルプル振動抑制
         this.checkStatic(fruit);
     }
     
-    static updateRotation(fruit, isOnGround) {
-        const velocityMagnitude = Math.abs(fruit.velocity.x);
+    // 静止中の果物の更新
+    static updateStaticFruit(fruit) {
+        fruit.angularVelocity *= CONFIG.physics.angularDamping;
+        if (Math.abs(fruit.angularVelocity) < 0.001) {
+            fruit.angularVelocity = 0;
+        }
+        fruit.rotation += fruit.angularVelocity;
+    }
+    
+    // 力の適用（重力・摩擦・空気抵抗）
+    static applyForces(fruit) {
+        const isOnGround = fruit.y + fruit.radius >= CONFIG.canvas.height - 5;
         
-        // 地面での転がり（より自然で見た目に美しい転がり）
-        if (isOnGround && velocityMagnitude > CONFIG.physics.rollingThreshold) {
-            // 理想的な転がり速度（滑らない物理法則）
-            const idealAngularVel = -fruit.velocity.x / fruit.radius;
+        // 重力適用
+        fruit.velocity.y += CONFIG.physics.gravity;
+        
+        // 空気抵抗と摩擦
+        fruit.velocity.x *= CONFIG.physics.airResistance;
+        fruit.velocity.y *= CONFIG.physics.friction;
+        
+        // 地面摩擦
+        if (isOnGround) {
+            fruit.velocity.x *= CONFIG.physics.groundFriction;
+        }
+    }
+    
+    // 位置更新と境界チェック
+    static updatePosition(fruit) {
+        this.preBoundaryCheck(fruit);
+        
+        fruit.x += fruit.velocity.x;
+        fruit.y += fruit.velocity.y;
+        
+        this.postBoundaryCheck(fruit);
+    }
+    
+    // == プルプル振動抑制システム ==
+    static suppressVibration(fruit) {
+        const speed = Math.sqrt(fruit.velocity.x ** 2 + fruit.velocity.y ** 2);
+        const angularSpeed = Math.abs(fruit.angularVelocity);
+        
+        // 微細振動の検出
+        const isMicroVibrating = speed > 0 && speed < CONFIG.game.vibrationThreshold;
+        const isMicroRotating = angularSpeed > 0 && angularSpeed < CONFIG.game.vibrationThreshold;
+        
+        // 位置の安定性チェック
+        if (!fruit.positionHistory) fruit.positionHistory = [];
+        fruit.positionHistory.push({ x: fruit.x, y: fruit.y, time: Date.now() });
+        
+        // 古い位置履歴を削除
+        const now = Date.now();
+        fruit.positionHistory = fruit.positionHistory.filter(pos => now - pos.time < 300);
+        
+        // 位置変化の小ささを判定
+        if (fruit.positionHistory.length >= 10) {
+            const recent = fruit.positionHistory.slice(-10);
+            const maxDelta = Math.max(
+                ...recent.map((pos, i) => i === 0 ? 0 : 
+                    Math.sqrt((pos.x - recent[i-1].x)**2 + (pos.y - recent[i-1].y)**2))
+            );
             
-            // スムーズな角速度調整（転がり開始時の加速を改善）
-            const angularDiff = idealAngularVel - fruit.angularVelocity;
-            const adjustmentFactor = CONFIG.physics.rotationFactor * CONFIG.physics.rollingAcceleration;
-            fruit.angularVelocity += angularDiff * adjustmentFactor;
-            
-            // 転がり抵抗を速度に応じて動的に調整
-            const dynamicResistance = CONFIG.physics.rollingResistance * (1 + velocityMagnitude * 0.1);
-            fruit.angularVelocity *= (1 - dynamicResistance);
-            
-            // 転がり効果の視覚的強化
-            fruit.isRolling = true;
-            fruit.rollIntensity = Math.min(1.0, velocityMagnitude / 3.0);
-            
-        } else if (isOnGround && velocityMagnitude <= CONFIG.physics.rollingThreshold) {
-            // 微小な速度での転がり停止処理
-            fruit.angularVelocity *= 0.85;
-            fruit.isRolling = false;
-            fruit.rollIntensity = Math.max(0, (fruit.rollIntensity || 0) - 0.05);
-            
-        } else if (!isOnGround) {
-            // 空中では慣性による回転が持続
-            fruit.angularVelocity *= 0.995;
-            fruit.isRolling = false;
-            fruit.rollIntensity = Math.max(0, (fruit.rollIntensity || 0) - 0.02);
+            // 極小範囲での振動を検出
+            if (maxDelta < CONFIG.game.vibrationThreshold && (isMicroVibrating || isMicroRotating)) {
+                // 振動抑制処理
+                this.applyVibrationDamping(fruit);
+            }
         }
         
-        // 地面での追加の減衰効果
+        // 接触中の果物同士の相互振動抑制
+        this.suppressContactVibration(fruit);
+    }
+    
+    // 振動減衰処理
+    static applyVibrationDamping(fruit) {
+        const dampingFactor = 0.3; // 強い減衰
+        
+        fruit.velocity.x *= dampingFactor;
+        fruit.velocity.y *= dampingFactor;
+        fruit.angularVelocity *= dampingFactor;
+        
+        // 極小値は完全に停止
+        if (Math.abs(fruit.velocity.x) < 0.001) fruit.velocity.x = 0;
+        if (Math.abs(fruit.velocity.y) < 0.001) fruit.velocity.y = 0;
+        if (Math.abs(fruit.angularVelocity) < 0.001) fruit.angularVelocity = 0;
+        
+        // 安定化カウンタを増加
+        fruit.stabilizationFrames = (fruit.stabilizationFrames || 0) + 1;
+        
+        // 一定フレーム続いたら完全静止
+        if (fruit.stabilizationFrames > CONFIG.game.contactStabilization) {
+            this.forceStatic(fruit);
+        }
+    }
+    
+    // 接触振動抑制
+    static suppressContactVibration(fruit) {
+        // この処理は checkCollisions で他の果物との関係で実行される
+        // ここでは個別の果物の接触状態を記録
+        if (!fruit.contactFrames) fruit.contactFrames = 0;
+        
+        // 地面接触時の特別な安定化
+        const isOnGround = fruit.y + fruit.radius >= CONFIG.canvas.height - 5;
+        if (isOnGround) {
+            const speed = Math.sqrt(fruit.velocity.x ** 2 + fruit.velocity.y ** 2);
+            if (speed < CONFIG.game.vibrationThreshold) {
+                fruit.contactFrames++;
+                
+                if (fruit.contactFrames > 3) {
+                    // 地面接触による強制安定化
+                    fruit.velocity.y = Math.min(0, fruit.velocity.y); // 上向き速度を無効化
+                    fruit.velocity.x *= 0.7; // 水平速度を減衰
+                    fruit.angularVelocity *= 0.7; // 回転速度を減衰
+                }
+            } else {
+                fruit.contactFrames = 0;
+            }
+        } else {
+            fruit.contactFrames = 0;
+        }
+    }
+    
+    // == 自然な転がり物理（重力・慣性法則に準拠） ==
+    static updateRotation(fruit) {
+        const velocityMagnitude = Math.abs(fruit.velocity.x);
+        const isOnGround = fruit.y + fruit.radius >= CONFIG.canvas.height - 5;
+        
+        // 重力による自然な転がり（実世界の物理法則）
+        if (isOnGround && velocityMagnitude > CONFIG.physics.rollingThreshold) {
+            // 真の物理転がり条件: v = ωr (滑らない転がり)
+            const naturalAngularVel = -fruit.velocity.x / fruit.radius;
+            
+            // 慣性力による段階的な角速度収束（急激な変化を避ける）
+            const inertiaResistance = fruit.mass / (fruit.mass + 15); // より強い慣性効果
+            const angularDiff = naturalAngularVel - fruit.angularVelocity;
+            const convergenceRate = CONFIG.physics.rotationFactor * inertiaResistance * 0.8; // 収束率を下げて遅くする
+            
+            // 重力加速度に比例した自然な角速度調整
+            fruit.angularVelocity += angularDiff * convergenceRate;
+            
+            // 地表摩擦による現実的な転がり抵抗（強化）
+            const rollingMu = CONFIG.physics.rollingResistance; // 転がり摩擦係数
+            const gravityEffect = CONFIG.physics.gravity / 9.8; // 重力正規化
+            const frictionTorque = rollingMu * gravityEffect * Math.sign(fruit.velocity.x) * 1.2; // 摩擦トルクを増加
+            fruit.angularVelocity -= frictionTorque / fruit.radius;
+            
+            // 慣性モーメントによる角運動量保存
+            const momentOfInertia = 0.4 * fruit.mass * fruit.radius * fruit.radius; // 球体の慣性モーメント
+            fruit.angularVelocity *= (1 - rollingMu / momentOfInertia);
+            
+            // 転がり状態の管理
+            fruit.isRolling = true;
+            fruit.rollIntensity = Math.min(1.0, velocityMagnitude / 6.0); // 転がり強度を下げる
+            
+        } else if (isOnGround && velocityMagnitude <= CONFIG.physics.rollingThreshold) {
+            // 静止摩擦による転がり停止（現実的な減衰）
+            const staticFriction = 0.9; // 静止摩擦係数
+            fruit.angularVelocity *= staticFriction;
+            fruit.isRolling = false;
+            fruit.rollIntensity = Math.max(0, (fruit.rollIntensity || 0) - 0.03);
+            
+        } else if (!isOnGround) {
+            // 空中での角運動量保存（慣性の法則）
+            const airResistance = 0.998; // 空気抵抗による微小な減衰
+            fruit.angularVelocity *= airResistance;
+            fruit.isRolling = false;
+            fruit.rollIntensity = Math.max(0, (fruit.rollIntensity || 0) - 0.01);
+        }
+        
+        // 地面接触時の動摩擦効果
         if (isOnGround) {
             fruit.angularVelocity *= CONFIG.physics.angularDamping;
         }
         
-        // 回転角度の更新（より滑らかに）
+        // 物理的な回転角度更新
         fruit.rotation += fruit.angularVelocity;
         
         // 回転角度の正規化
         fruit.rotation = fruit.rotation % (Math.PI * 2);
         if (fruit.rotation < 0) fruit.rotation += Math.PI * 2;
         
-        // 極小回転の停止処理
-        if (Math.abs(fruit.angularVelocity) < 0.0008) {
+        // 極小角速度の物理的停止
+        if (Math.abs(fruit.angularVelocity) < 0.0005) {
             fruit.angularVelocity = 0;
             fruit.isRolling = false;
         }
         
-        // 転がり効果のためのトレイル情報更新
+        // 転がり軌跡の物理的記録
         if (!fruit.rotationTrail) fruit.rotationTrail = [];
         fruit.rotationTrail.push({
             angle: fruit.rotation,
             timestamp: Date.now(),
-            intensity: fruit.rollIntensity || 0
+            intensity: fruit.rollIntensity || 0,
+            angularVelocity: fruit.angularVelocity
         });
         
-        // 古いトレイル情報を削除（パフォーマンス最適化）
+        // 軌跡データの効率的管理
         const now = Date.now();
         fruit.rotationTrail = fruit.rotationTrail.filter(trail => 
-            now - trail.timestamp < 200
+            now - trail.timestamp < 150
         );
     }
     
+    // == 境界処理 ==
     static preBoundaryCheck(fruit) {
         // 予測位置での境界チェック
         const nextX = fruit.x + fruit.velocity.x;
@@ -713,70 +899,70 @@ class PhysicsEngine {
         }
     }
     
-    // 旧メソッドは削除
-    static handleBoundaries(fruit) {
-        // このメソッドは上記の新しいメソッドに統合されました
+    // == 静止判定・振動抑制 ==
+    static checkStatic(fruit) {
+        const motionData = this.getMotionData(fruit);
+        
+        // 段階的な静止判定処理
+        this.stopMicroMovements(fruit, motionData);
+        
+        if (this.detectAndStopVibration(fruit, motionData)) {
+            return; // 振動停止した場合は早期終了
+        }
+        
+        this.processNormalStatic(fruit, motionData);
+        this.suppressAdditionalVibration(fruit, motionData);
     }
     
-    static checkStatic(fruit) {
-        const speed = Math.sqrt(fruit.velocity.x ** 2 + fruit.velocity.y ** 2);
-        const angularSpeed = Math.abs(fruit.angularVelocity);
-        const isNearBottom = fruit.y + fruit.radius >= CONFIG.canvas.height - 5;
-        
-        // 第1段階: 極小動作の即座停止
-        if (speed < CONFIG.game.microMovementThreshold) {
+    // 動作データの取得
+    static getMotionData(fruit) {
+        return {
+            speed: Math.sqrt(fruit.velocity.x ** 2 + fruit.velocity.y ** 2),
+            angularSpeed: Math.abs(fruit.angularVelocity),
+            isNearBottom: fruit.y + fruit.radius >= CONFIG.canvas.height - 5
+        };
+    }
+    
+    // 極小動作の即座停止
+    static stopMicroMovements(fruit, motionData) {
+        if (motionData.speed < CONFIG.game.microMovementThreshold) {
             fruit.velocity.x = 0;
             fruit.velocity.y = 0;
         }
         
-        if (angularSpeed < CONFIG.game.microMovementThreshold) {
+        if (motionData.angularSpeed < CONFIG.game.microMovementThreshold) {
             fruit.angularVelocity = 0;
         }
+    }
+    
+    // 振動検出と強制停止
+    static detectAndStopVibration(fruit, motionData) {
+        const hasMinimalMovement = motionData.speed < CONFIG.game.staticThreshold && 
+                                  motionData.angularSpeed < CONFIG.game.staticThreshold;
+        const isAtRest = motionData.speed === 0 && motionData.angularSpeed === 0;
         
-        // 第2段階: 不自然な振動の検出と強制停止
-        const hasMinimalMovement = speed < CONFIG.game.staticThreshold && 
-                                  angularSpeed < CONFIG.game.staticThreshold;
-        const isAtRest = speed === 0 && angularSpeed === 0;
-        
-        // 底面近くでの微小振動を完全停止
-        if (isNearBottom && hasMinimalMovement && !isAtRest) {
-            // 振動と判定される条件での強制停止
+        if (motionData.isNearBottom && hasMinimalMovement && !isAtRest) {
             const vibrationThreshold = CONFIG.game.microMovementThreshold * 0.5;
-            if (speed < vibrationThreshold || angularSpeed < vibrationThreshold) {
-                fruit.velocity.x = 0;
-                fruit.velocity.y = 0;
-                fruit.angularVelocity = 0;
-                fruit.isStatic = true;
-                
-                // 位置を完全に安定化
-                fruit.y = CONFIG.canvas.height - fruit.radius;
-                fruit.x = Math.max(fruit.radius, Math.min(CONFIG.canvas.width - fruit.radius, fruit.x));
-                fruit.rotation = Math.round(fruit.rotation / (Math.PI / 6)) * (Math.PI / 6);
-                
-                return; // 早期終了で追加処理をスキップ
+            if (motionData.speed < vibrationThreshold || motionData.angularSpeed < vibrationThreshold) {
+                this.forceStatic(fruit);
+                return true;
             }
         }
-        
-        // 第3段階: 通常の静止判定
-        const isCompletelyStill = speed < CONFIG.game.staticThreshold && 
-                                 angularSpeed < CONFIG.game.staticThreshold && 
-                                 isNearBottom;
+        return false;
+    }
+    
+    // 通常の静止判定処理
+    static processNormalStatic(fruit, motionData) {
+        const isCompletelyStill = motionData.speed < CONFIG.game.staticThreshold && 
+                                 motionData.angularSpeed < CONFIG.game.staticThreshold && 
+                                 motionData.isNearBottom;
         
         if (isCompletelyStill) {
             fruit.staticFrames = (fruit.staticFrames || 0) + 1;
             fruit.stabilityFrames = (fruit.stabilityFrames || 0) + 1;
             
-            // 段階的な停止プロセス（より厳格）
             if (fruit.staticFrames >= CONFIG.game.staticFrameCount) {
-                fruit.isStatic = true;
-                fruit.velocity.x = 0;
-                fruit.velocity.y = 0;
-                fruit.angularVelocity = 0;
-                
-                // 位置の完全安定化
-                fruit.y = CONFIG.canvas.height - fruit.radius;
-                fruit.x = Math.max(fruit.radius, Math.min(CONFIG.canvas.width - fruit.radius, fruit.x));
-                fruit.rotation = Math.round(fruit.rotation / (Math.PI / 6)) * (Math.PI / 6);
+                this.forceStatic(fruit);
             } else if (fruit.staticFrames >= CONFIG.game.staticFrameCount / 2) {
                 // 準静止状態：強力な減衰
                 fruit.velocity.x *= 0.3;
@@ -784,29 +970,42 @@ class PhysicsEngine {
                 fruit.angularVelocity *= 0.2;
             }
         } else {
-            // 動きがある場合はカウンターをリセット
             fruit.staticFrames = 0;
             fruit.stabilityFrames = 0;
         }
-        
-        // 第4段階: 追加の振動抑制処理
-        if (!fruit.isStatic && isNearBottom) {
-            // 底面近くでの極小動作を段階的に減衰
-            if (speed < CONFIG.game.microMovementThreshold * 3) {
+    }
+    
+    // 追加の振動抑制処理
+    static suppressAdditionalVibration(fruit, motionData) {
+        if (!fruit.isStatic && motionData.isNearBottom) {
+            if (motionData.speed < CONFIG.game.microMovementThreshold * 3) {
                 fruit.velocity.x *= 0.5;
                 fruit.velocity.y *= 0.5;
             }
             
-            if (angularSpeed < CONFIG.game.microMovementThreshold * 3) {
+            if (motionData.angularSpeed < CONFIG.game.microMovementThreshold * 3) {
                 fruit.angularVelocity *= 0.6;
             }
             
-            // 非常に小さな動きは即座に停止
-            if (speed < 0.005) fruit.velocity.x = fruit.velocity.y = 0;
-            if (angularSpeed < 0.005) fruit.angularVelocity = 0;
+            if (motionData.speed < 0.005) fruit.velocity.x = fruit.velocity.y = 0;
+            if (motionData.angularSpeed < 0.005) fruit.angularVelocity = 0;
         }
     }
     
+    // 強制的に静止状態にする
+    static forceStatic(fruit) {
+        fruit.velocity.x = 0;
+        fruit.velocity.y = 0;
+        fruit.angularVelocity = 0;
+        fruit.isStatic = true;
+        
+        // 位置を完全に安定化
+        fruit.y = CONFIG.canvas.height - fruit.radius;
+        fruit.x = Math.max(fruit.radius, Math.min(CONFIG.canvas.width - fruit.radius, fruit.x));
+        fruit.rotation = Math.round(fruit.rotation / (Math.PI / 6)) * (Math.PI / 6);
+    }
+    
+    // == 衝突処理 ==
     static resolveCollision(fruit1, fruit2) {
         const dx = fruit2.x - fruit1.x;
         const dy = fruit2.y - fruit1.y;
@@ -826,19 +1025,57 @@ class PhysicsEngine {
         const nx = dx / distance;
         const ny = dy / distance;
         
-        // 重なり解消（慣性に基づく分配）
-        const overlap = minDistance - distance;
-        const correction1 = overlap * (mass2 / totalMass) * 0.5;
-        const correction2 = overlap * (mass1 / totalMass) * 0.5;
+        // 積み重ね状況を先に判定（分離処理のため）
+        const isStackingForSeparation = this.detectStackingScenario(fruit1, fruit2, nx, ny);
         
-        fruit1.x -= nx * correction1;
-        fruit1.y -= ny * correction1;
-        fruit2.x += nx * correction2;
-        fruit2.y += ny * correction2;
+        // 重なり解消（視覚的接触を維持しつつ物理的分離）
+        const overlap = minDistance - distance;
+        const contactBuffer = CONFIG.physics.separationBuffer;
+        
+        // 視覚的接触のための最小分離距離
+        const visualContactDistance = fruit1.radius + fruit2.radius - 1.0; // 1ピクセル重なりを許可
+        const actualMinDistance = Math.max(visualContactDistance, fruit1.radius + fruit2.radius + contactBuffer);
+        
+        const actualOverlap = actualMinDistance - distance;
+        const totalCorrection = Math.max(0, actualOverlap);
+        
+        if (isStackingForSeparation) {
+            // 積み重ね時は垂直方向の分離を制限
+            const maxVerticalSeparation = Math.min(totalCorrection, overlap * 0.8);
+            const separationRatio = maxVerticalSeparation / totalCorrection;
+            
+            const correction1 = totalCorrection * (mass2 / totalMass) * separationRatio;
+            const correction2 = totalCorrection * (mass1 / totalMass) * separationRatio;
+            
+            // 主に垂直方向に分離（水平分離を最小化）
+            if (Math.abs(ny) > 0.6) {
+                fruit1.x -= nx * correction1 * 0.3; // 水平分離を減らす
+                fruit1.y -= ny * correction1;
+                fruit2.x += nx * correction2 * 0.3;
+                fruit2.y += ny * correction2;
+            } else {
+                fruit1.x -= nx * correction1;
+                fruit1.y -= ny * correction1;
+                fruit2.x += nx * correction2;
+                fruit2.y += ny * correction2;
+            }
+        } else {
+            // 通常の分離処理
+            const correction1 = totalCorrection * (mass2 / totalMass);
+            const correction2 = totalCorrection * (mass1 / totalMass);
+            
+            fruit1.x -= nx * correction1;
+            fruit1.y -= ny * correction1;
+            fruit2.x += nx * correction2;
+            fruit2.y += ny * correction2;
+        }
         
         // 位置補正後に境界チェック
         this.constrainToBoundaries(fruit1);
         this.constrainToBoundaries(fruit2);
+        
+        // 分離確認：まだ重なっている場合は追加分離
+        this.ensureProperSeparation(fruit1, fruit2);
         
         // 相対速度の計算
         const relativeVelX = fruit1.velocity.x - fruit2.velocity.x;
@@ -848,55 +1085,111 @@ class PhysicsEngine {
         // 離れる方向に動いている場合は処理しない
         if (relativeSpeed > 0) return true;
         
-        // 反発係数を考慮した衝突impulse
-        const restitution = CONFIG.physics.restitution;
+        // 積み重ね状況の判定（飛び上がり防止）
+        const isStacking = this.detectStackingScenario(fruit1, fruit2, nx, ny);
+        
+        // 反発係数を考慮した衝突impulse（積み重ね時は低減）
+        const baseRestitution = CONFIG.physics.restitution;
+        const restitution = isStacking ? baseRestitution * 0.3 : baseRestitution; // 積み重ね時は反発を大幅に低減
         const impulseMagnitude = -(1 + restitution) * relativeSpeed / totalMass;
         
         // 慣性の法則に基づく速度変化
         const impulseX = impulseMagnitude * nx;
         const impulseY = impulseMagnitude * ny;
         
-        // ニュートンの第二法則：F = ma より a = F/m
-        fruit1.velocity.x += impulseX * mass2;
-        fruit1.velocity.y += impulseY * mass2;
-        fruit2.velocity.x -= impulseX * mass1;
-        fruit2.velocity.y -= impulseY * mass1;
-        
-        // 質量差による効果（重い物体は軽い物体より動きにくい）
-        const massRatio1 = mass2 / (mass1 + mass2);
-        const massRatio2 = mass1 / (mass1 + mass2);
+        // 積み重ね時の特別処理
+        if (isStacking) {
+            // 垂直方向の衝突力を大幅に制限
+            const verticalLimit = 0.2; // 垂直方向の最大衝突力
+            const limitedImpulseY = Math.sign(impulseY) * Math.min(Math.abs(impulseY), verticalLimit);
+            
+            // ニュートンの第二法則（制限付き）
+            fruit1.velocity.x += impulseX * mass2 * 0.8; // 水平方向も減衰
+            fruit1.velocity.y += limitedImpulseY * mass2; // 垂直方向制限
+            fruit2.velocity.x -= impulseX * mass1 * 0.8;
+            fruit2.velocity.y -= limitedImpulseY * mass1;
+        } else {
+            // 通常の衝突処理
+            fruit1.velocity.x += impulseX * mass2;
+            fruit1.velocity.y += impulseY * mass2;
+            fruit2.velocity.x -= impulseX * mass1;
+            fruit2.velocity.y -= impulseY * mass1;
+        }
         
         // エネルギー損失（非弾性衝突の要素）
-        const energyLoss = 0.85; // エネルギー保存係数
+        const energyLoss = isStacking ? 0.65 : 0.85; // 積み重ね時はより多くのエネルギー損失
         fruit1.velocity.x *= energyLoss;
         fruit1.velocity.y *= energyLoss;
         fruit2.velocity.x *= energyLoss;
         fruit2.velocity.y *= energyLoss;
         
-        // 慣性による回転効果
-        this.applyInertialRotation(fruit1, fruit2, nx, ny, impulseX, impulseY);
+        // 強化された回転効果
+        this.applyEnhancedCollisionRotation(fruit1, fruit2, nx, ny, impulseX, impulseY);
         
-        // 静止状態解除
-        fruit1.isStatic = false;
-        fruit2.isStatic = false;
-        fruit1.staticFrames = 0;
-        fruit2.staticFrames = 0;
+        // 衝突による転がり効果の開始
+        this.initiateRollingFromCollision(fruit1, fruit2, impulseX, impulseY);
+        
+        // 静止状態解除（積み重ね時は下の果物の静止を維持）
+        if (!isStacking) {
+            fruit1.isStatic = false;
+            fruit2.isStatic = false;
+            fruit1.staticFrames = 0;
+            fruit2.staticFrames = 0;
+        } else {
+            // 積み重ね時は下の果物の安定性を保持
+            const bottomFruit = fruit1.y > fruit2.y ? fruit1 : fruit2;
+            const topFruit = fruit1.y > fruit2.y ? fruit2 : fruit1;
+            
+            topFruit.isStatic = false;
+            topFruit.staticFrames = 0;
+            
+            // 下の果物は部分的に静止状態を維持
+            if (bottomFruit.isStatic) {
+                bottomFruit.staticFrames = Math.max(0, bottomFruit.staticFrames - 5);
+            }
+        }
         
         return true;
     }
     
-    static applyInertialRotation(fruit1, fruit2, nx, ny, impulseX, impulseY) {
+    // 積み重ね状況の検出（飛び上がり防止）
+    static detectStackingScenario(fruit1, fruit2, nx, ny) {
+        // 垂直方向の衝突かどうか判定
+        const verticalCollision = Math.abs(ny) > 0.6; // 法線ベクトルが主に垂直
+        
+        // 下の果物が地面近くにあるかどうか
+        const bottomFruit = fruit1.y > fruit2.y ? fruit1 : fruit2;
+        const topFruit = fruit1.y > fruit2.y ? fruit2 : fruit1;
+        const isBottomNearGround = bottomFruit.y + bottomFruit.radius >= CONFIG.canvas.height - 10;
+        
+        // 重なり具合の判定
+        const dx = fruit2.x - fruit1.x;
+        const dy = fruit2.y - fruit1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const overlap = (fruit1.radius + fruit2.radius) - distance;
+        const significantOverlap = overlap > Math.max(fruit1.radius, fruit2.radius) * 0.3;
+        
+        // 上の果物の速度が小さい（落下中ではない）
+        const topFruitSpeed = Math.sqrt(topFruit.velocity.x ** 2 + topFruit.velocity.y ** 2);
+        const lowSpeed = topFruitSpeed < 2.0;
+        
+        // 積み重ね状況の判定
+        return verticalCollision && isBottomNearGround && significantOverlap && lowSpeed;
+    }
+    
+    // 強化された衝突回転効果
+    static applyEnhancedCollisionRotation(fruit1, fruit2, nx, ny, impulseX, impulseY) {
         // 慣性モーメント（球体の場合 I = 2/5 * m * r²）
         const inertia1 = 0.4 * fruit1.mass * fruit1.radius * fruit1.radius;
         const inertia2 = 0.4 * fruit2.mass * fruit2.radius * fruit2.radius;
         
-        // 衝突点から重心までの距離ベクトル（回転軸計算用）
-        const r1 = fruit1.radius;
-        const r2 = fruit2.radius;
+        // 衝突強度に応じた回転強化係数
+        const impactMagnitude = Math.sqrt(impulseX * impulseX + impulseY * impulseY);
+        const rotationEnhancement = 1.5 + Math.min(impactMagnitude * 0.5, 1.0); // 1.5〜2.5倍
         
-        // 接触点での接線速度成分を計算
-        const tangentialImpulse1 = (-ny * impulseX + nx * impulseY) * r1;
-        const tangentialImpulse2 = (ny * impulseX - nx * impulseY) * r2;
+        // 接触点での接線速度成分を計算（強化版）
+        const tangentialImpulse1 = (-ny * impulseX + nx * impulseY) * fruit1.radius * rotationEnhancement;
+        const tangentialImpulse2 = (ny * impulseX - nx * impulseY) * fruit2.radius * rotationEnhancement;
         
         // 角運動量の変化（トルク = r × F）
         const angularImpulse1 = tangentialImpulse1 / inertia1;
@@ -906,28 +1199,105 @@ class PhysicsEngine {
         fruit1.angularVelocity += angularImpulse1;
         fruit2.angularVelocity += angularImpulse2;
         
-        // 摩擦による回転（より現実的）
-        const frictionFactor = 0.3;
+        // 強化された摩擦による回転
+        const frictionFactor = 0.6; // より強い摩擦
         const relativeVelMagnitude = Math.sqrt(impulseX * impulseX + impulseY * impulseY);
         
-        if (nx > 0) {
-            fruit1.angularVelocity -= relativeVelMagnitude * frictionFactor / fruit1.radius;
-            fruit2.angularVelocity += relativeVelMagnitude * frictionFactor / fruit2.radius;
-        } else {
-            fruit1.angularVelocity += relativeVelMagnitude * frictionFactor / fruit1.radius;
-            fruit2.angularVelocity -= relativeVelMagnitude * frictionFactor / fruit2.radius;
-        }
+        // 衝突方向に基づく回転方向の決定
+        const collisionAngle = Math.atan2(ny, nx);
+        const rotationDirection1 = Math.sign(Math.sin(collisionAngle));
+        const rotationDirection2 = -rotationDirection1;
         
-        // 角速度の制限（現実的な範囲内）
-        const maxAngularVel = 0.4;
+        // より現実的な回転力の適用
+        fruit1.angularVelocity += rotationDirection1 * relativeVelMagnitude * frictionFactor / fruit1.radius;
+        fruit2.angularVelocity += rotationDirection2 * relativeVelMagnitude * frictionFactor / fruit2.radius;
+        
+        // 角速度の制限（より大きな値を許可）
+        const maxAngularVel = 0.8; // 従来の2倍
         fruit1.angularVelocity = Math.max(-maxAngularVel, Math.min(maxAngularVel, fruit1.angularVelocity));
         fruit2.angularVelocity = Math.max(-maxAngularVel, Math.min(maxAngularVel, fruit2.angularVelocity));
     }
     
-    // 旧メソッドの置き換え
-    static applyCollisionRotation(fruit1, fruit2, nx, ny) {
-        // この関数は applyInertialRotation に統合されました
-        console.warn("applyCollisionRotation is deprecated, use applyInertialRotation instead");
+    // 衝突による転がり効果の開始
+    static initiateRollingFromCollision(fruit1, fruit2, impulseX, impulseY) {
+        const impactStrength = Math.sqrt(impulseX * impulseX + impulseY * impulseY);
+        const rollingThreshold = 0.1; // 転がり開始の閾値
+        
+        if (impactStrength > rollingThreshold) {
+            // 果物1の転がり効果
+            fruit1.isRolling = true;
+            fruit1.rollIntensity = Math.min(1.0, impactStrength * 2.0);
+            fruit1.collisionRollingFrames = 60; // 60フレーム（約1秒）継続
+            
+            // 果物2の転がり効果
+            fruit2.isRolling = true;
+            fruit2.rollIntensity = Math.min(1.0, impactStrength * 2.0);
+            fruit2.collisionRollingFrames = 60;
+            
+            // 感情を興奮状態に
+            fruit1.emotion = 'excited';
+            fruit2.emotion = 'excited';
+        }
+    }
+    
+    
+    // 分離確認と追加分離処理（振動抑制対応）
+    static ensureProperSeparation(fruit1, fruit2) {
+        const dx = fruit2.x - fruit1.x;
+        const dy = fruit2.y - fruit1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 視覚的接触を考慮した分離距離
+        const visualContactDistance = fruit1.radius + fruit2.radius - 0.8; // より近い接触
+        const physicalSeparation = CONFIG.physics.separationBuffer;
+        const requiredDistance = visualContactDistance + physicalSeparation;
+        
+        if (distance < requiredDistance && distance > 0) {
+            // 段階的な分離処理（振動を避ける）
+            const separationDeficit = requiredDistance - distance;
+            
+            // 分離が必要な場合でも控えめに調整
+            const gentleSeparation = Math.min(separationDeficit, 0.3); // 最大0.3ピクセルずつ
+            const nx = dx / distance;
+            const ny = dy / distance;
+            
+            const mass1 = fruit1.mass || 1;
+            const mass2 = fruit2.mass || 1;
+            const totalMass = mass1 + mass2;
+            
+            const push1 = gentleSeparation * (mass2 / totalMass);
+            const push2 = gentleSeparation * (mass1 / totalMass);
+            
+            // 分離時の速度減衰（振動抑制）
+            const currentSpeed1 = Math.sqrt(fruit1.velocity.x ** 2 + fruit1.velocity.y ** 2);
+            const currentSpeed2 = Math.sqrt(fruit2.velocity.x ** 2 + fruit2.velocity.y ** 2);
+            
+            if (currentSpeed1 < CONFIG.game.vibrationThreshold) {
+                fruit1.velocity.x *= 0.5; // 微動時は速度を大幅減衰
+                fruit1.velocity.y *= 0.5;
+            }
+            if (currentSpeed2 < CONFIG.game.vibrationThreshold) {
+                fruit2.velocity.x *= 0.5;
+                fruit2.velocity.y *= 0.5;
+            }
+            
+            fruit1.x -= nx * push1;
+            fruit1.y -= ny * push1;
+            fruit2.x += nx * push2;
+            fruit2.y += ny * push2;
+            
+            // 境界内に強制的に収める
+            this.constrainToBoundaries(fruit1);
+            this.constrainToBoundaries(fruit2);
+            
+            // 分離後の安定化
+            fruit1.stabilizationFrames = (fruit1.stabilizationFrames || 0) + 1;
+            fruit2.stabilizationFrames = (fruit2.stabilizationFrames || 0) + 1;
+        } else {
+            // 適切な距離の場合は安定化カウンタをリセット
+            if (fruit1.stabilizationFrames) fruit1.stabilizationFrames = 0;
+            if (fruit2.stabilizationFrames) fruit2.stabilizationFrames = 0;
+        }
     }
     
     static constrainToBoundaries(fruit) {
@@ -948,7 +1318,10 @@ class PhysicsEngine {
     }
 }
 
+// ========================
 // 果物クラス
+// ========================
+
 class Fruit {
     constructor(x, y, type) {
         this.x = x;
@@ -972,82 +1345,128 @@ class Fruit {
         this.isRolling = false;                       // 転がり状態
         this.rollIntensity = 0;                       // 転がり強度（0-1）
         this.rotationTrail = [];                      // 回転軌跡
+        this.collisionRollingFrames = 0;              // 衝突による転がり継続フレーム
         
         // 静止管理
         this.stabilityFrames = 0;                     // 安定性フレーム
         this.lastPosition = { x: this.x, y: this.y }; // 前フレームの位置
     }
     
+    // メイン更新処理
     update() {
-        this.animationTimer++;
+        this.updateTimer();
+        this.savePosition();
+        this.updateDropProtection();
         
-        // 前フレームの位置を保存
-        this.lastPosition.x = this.x;
-        this.lastPosition.y = this.y;
-        
-        // 投下保護
-        if (this.dropProtection > 0) {
-            this.dropProtection--;
-        }
-        
-        // 物理更新
         PhysicsEngine.update(this);
         
-        // 微小移動のチェックと強制停止
+        this.updateCollisionRolling(); // 衝突転がり効果の管理
         this.checkMicroMovements();
-        
-        // 感情の更新
         this.updateEmotion();
     }
     
+    // タイマーと位置の更新
+    updateTimer() {
+        this.animationTimer++;
+    }
+    
+    savePosition() {
+        this.lastPosition.x = this.x;
+        this.lastPosition.y = this.y;
+    }
+    
+    updateDropProtection() {
+        if (this.dropProtection > 0) {
+            this.dropProtection--;
+        }
+    }
+    
+    // 衝突による転がり効果の管理
+    updateCollisionRolling() {
+        if (this.collisionRollingFrames > 0) {
+            this.collisionRollingFrames--;
+            
+            // 衝突転がりフレームが残っている間は強制的に転がり状態を維持
+            this.isRolling = true;
+            
+            // フレーム数に応じて転がり強度を減衰
+            const remainingRatio = this.collisionRollingFrames / 60;
+            this.rollIntensity = Math.max(0.3, this.rollIntensity * 0.98); // 最低0.3は維持
+            
+            // 衝突転がりが終了に近づいたら感情をクールダウン
+            if (this.collisionRollingFrames < 15) {
+                this.emotion = 'happy';
+            }
+        } else if (this.collisionRollingFrames === 0 && this.isRolling) {
+            // 衝突による転がりが終了した場合の処理
+            const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
+            if (speed < CONFIG.physics.rollingThreshold) {
+                this.isRolling = false;
+                this.rollIntensity = 0;
+                this.emotion = 'neutral';
+            }
+        }
+    }
+    
+    // 微小動作のチェックと制御
     checkMicroMovements() {
-        // 位置変化の詳細分析
+        const motionData = this.getMotionAnalysis();
+        
+        if (this.shouldStopImmediately(motionData)) {
+            this.stopVibration();
+            return;
+        }
+        
+        this.handlePersistentMicroMovements(motionData);
+        
+        if (this.detectVibration()) {
+            this.stopVibration();
+        }
+    }
+    
+    // 動作解析データの取得
+    getMotionAnalysis() {
         const positionDelta = Math.sqrt(
             Math.pow(this.x - this.lastPosition.x, 2) + 
             Math.pow(this.y - this.lastPosition.y, 2)
         );
         
-        const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
-        const angularSpeed = Math.abs(this.angularVelocity);
-        const isNearGround = this.y + this.radius >= CONFIG.canvas.height - 5;
+        return {
+            positionDelta,
+            speed: Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2),
+            angularSpeed: Math.abs(this.angularVelocity),
+            isNearGround: this.y + this.radius >= CONFIG.canvas.height - 5
+        };
+    }
+    
+    // 即座停止すべきかの判定
+    shouldStopImmediately(motionData) {
+        return motionData.positionDelta < CONFIG.game.microMovementThreshold * 0.5 && 
+               motionData.isNearGround && 
+               !this.isStatic && 
+               motionData.speed < CONFIG.game.microMovementThreshold * 2;
+    }
+    
+    // 持続的微動の処理
+    handlePersistentMicroMovements(motionData) {
+        if (!motionData.isNearGround || this.isStatic) return;
         
-        // 極小移動の即座停止（より厳格な条件）
-        if (positionDelta < CONFIG.game.microMovementThreshold * 0.5 && isNearGround && !this.isStatic) {
-            if (speed < CONFIG.game.microMovementThreshold * 2) {
-                this.velocity.x = 0;
-                this.velocity.y = 0;
-                this.angularVelocity = 0;
+        // 速度はあるが位置変化が極小な場合
+        if (motionData.positionDelta < CONFIG.game.microMovementThreshold && 
+            (motionData.speed > 0 || motionData.angularSpeed > 0)) {
+            this.velocity.x *= 0.1;
+            this.velocity.y *= 0.1;
+            this.angularVelocity *= 0.1;
+        }
+        
+        // 連続的な微小振動の累積チェック
+        if (motionData.positionDelta < CONFIG.game.microMovementThreshold * 2) {
+            this.stabilityFrames = (this.stabilityFrames || 0) + 1;
+            if (this.stabilityFrames >= 5) {
                 this.stopVibration();
-                return;
             }
-        }
-        
-        // 不自然な持続的微動の検出
-        if (isNearGround && !this.isStatic) {
-            // 速度はあるが位置変化が極小な場合（ぐにゃぐにゃ状態）
-            if (positionDelta < CONFIG.game.microMovementThreshold && 
-                (speed > 0 || angularSpeed > 0)) {
-                this.velocity.x *= 0.1;
-                this.velocity.y *= 0.1;
-                this.angularVelocity *= 0.1;
-            }
-            
-            // 連続的な微小振動の累積チェック
-            if (positionDelta < CONFIG.game.microMovementThreshold * 2) {
-                this.stabilityFrames = (this.stabilityFrames || 0) + 1;
-                
-                if (this.stabilityFrames >= 5) {
-                    this.stopVibration();
-                    return;
-                }
-            } else {
-                this.stabilityFrames = 0;
-            }
-        }
-        
-        // 振動の検出と即座停止
-        if (this.detectVibration()) {
-            this.stopVibration();
+        } else {
+            this.stabilityFrames = 0;
         }
     }
     
@@ -1111,7 +1530,10 @@ class Fruit {
     }
 }
 
+// ========================
 // エフェクトシステム
+// ========================
+
 class EffectSystem {
     constructor() {
         this.effects = [];
@@ -1192,9 +1614,20 @@ class EffectSystem {
     }
 }
 
+// ========================
 // メインゲームクラス
+// ========================
+
 class CuteWatermelonGame {
+    // == 初期化・設定 ==
     constructor() {
+        this.initializeCanvas();
+        this.initializeGameState();
+        this.initializeComponents();
+        this.init();
+    }
+    
+    initializeCanvas() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.nextCanvas = document.getElementById('nextFruitCanvas');
@@ -1202,7 +1635,9 @@ class CuteWatermelonGame {
         
         this.canvas.width = CONFIG.canvas.width;
         this.canvas.height = CONFIG.canvas.height;
-        
+    }
+    
+    initializeGameState() {
         this.fruits = [];
         this.nextFruit = null;
         this.score = 0;
@@ -1210,11 +1645,11 @@ class CuteWatermelonGame {
         this.lastMergeTime = 0;
         this.gameOver = false;
         this.isPaused = false;
-        
+    }
+    
+    initializeComponents() {
         this.effects = new EffectSystem();
         this.achievedFruits = new Set();
-        
-        this.init();
     }
     
     init() {
@@ -1233,6 +1668,7 @@ class CuteWatermelonGame {
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
     }
     
+    // == 入力処理 ==
     handleMouseMove(e) {
         if (!this.nextFruit || this.gameOver || this.isPaused) return;
         
@@ -1258,6 +1694,7 @@ class CuteWatermelonGame {
         this.generateNextFruit();
     }
     
+    // == ゲーム制御 ==
     generateNextFruit() {
         const allowedTypes = [0, 1, 2, 3, 4]; // 最初の5種類のみ
         const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
@@ -1285,6 +1722,7 @@ class CuteWatermelonGame {
         }
     }
     
+    // == 物理・衝突処理 ==
     checkCollisions() {
         for (let iteration = 0; iteration < CONFIG.physics.maxCollisionIterations; iteration++) {
             let hadCollision = false;
@@ -1356,6 +1794,7 @@ class CuteWatermelonGame {
         return Math.max(0, (this.combo - 1) * 10);
     }
     
+    // == UI管理 ==
     checkGameOver() {
         return this.fruits.some(fruit => 
             fruit.dropProtection === 0 && 
@@ -1417,6 +1856,7 @@ class CuteWatermelonGame {
         document.getElementById('gameOverScreen').style.display = 'flex';
     }
     
+    // == 描画・表示 ==
     gameLoop() {
         if (!this.isPaused && !this.gameOver) {
             // 果物更新
@@ -1490,7 +1930,10 @@ class CuteWatermelonGame {
     }
 }
 
-// ゲーム開始
+// ========================
+// ゲーム初期化・開始
+// ========================
+
 document.addEventListener('DOMContentLoaded', () => {
     new CuteWatermelonGame();
 });
